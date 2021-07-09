@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-demo
+  labels:
+    deployment: nginx-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-demo
+  template:
+    metadata:
+      labels:
+        app: nginx-demo
+    spec:
+      serviceAccountName: demo
+      containers:
+        - name: nginx-demo
+          image: nginxdemos/hello:0.2
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-demo-svc
+  labels:
+    service: nginx-demo
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+      name: http
+  selector:
+    app: nginx-demo
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: demo
+  labels:
+    service: nginx-demo
+
